@@ -2,10 +2,11 @@
   "name": "test-playwright",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "print:report": "node scripts/print-report.js",
-    "print:report:from": "node scripts/print-report.js"
+    "test": "npx playwright test",
+    "test:screenshots": "SAVE_SCREENSHOTS=true npx playwright test",
+    "test:screenshots:headed": "SAVE_SCREENSHOTS=true npx playwright test --headed",
+    "print:report": "node scripts/print-report.js"
   },
   "keywords": [],
   "author": "",

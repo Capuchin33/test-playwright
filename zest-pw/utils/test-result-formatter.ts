@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { parsePlannedStepsFromFile } from './parse-test-steps';
+import { saveBase64Screenshot } from './save-screenshots';
 
 /**
  * Форматує та виводить результати тестів після їх завершення
@@ -127,12 +128,24 @@ function printStepAttachments(step: any): void {
   }
 
   console.log(`       actualResult:`);
-  step.attachments.forEach((att: any) => {
+  step.attachments.forEach((att: any, index: number) => {
     console.log(`         - ${att.name} (${att.contentType})${att.path ? ` - Path: ${att.path}` : ''}`);
     
     if (att.body) {
       const preview = att.body.substring(0, 50);
       console.log(`           Base64 (${att.bodySize} bytes): ${preview}...`);
+      
+      // Зберігаємо скріншот на диск, якщо встановлена змінна оточення
+      if (process.env.SAVE_SCREENSHOTS === 'true' && att.contentType === 'image/png') {
+        try {
+          const stepTitle = step.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          const filename = `${stepTitle}__${index + 1}__${Date.now()}.png`;
+          const filepath = saveBase64Screenshot(att.body, filename);
+          console.log(`           📸 Saved to: ${filepath}`);
+        } catch (error) {
+          console.error(`           ⚠️  Error saving screenshot: ${error}`);
+        }
+      }
     }
   });
 }

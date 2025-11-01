@@ -1,18 +1,19 @@
 import { test as base } from '@playwright/test';
 import { takeScreenshotAfterStep } from '../utils/screenshot';
-import { AsyncLocalStorage } from 'async_hooks';
 
-// Використовуємо AsyncLocalStorage для безпечного зберігання контексту тесту
-// Це безпечно працює при паралельному виконанні тестів
-interface TestContext {
-  testInfo: any;
-  page: any;
-}
+// Глобальна змінна для зберігання поточного контексту тесту
+let currentTestContext: { testInfo: any; page: any } | null = null;
 
-const testContextStorage = new AsyncLocalStorage<TestContext>();
-
-// Розширюємо базовий test
-export const test = base.extend({});
+// Розширюємо базовий test з кастомним fixture для зберігання контексту
+export const test = base.extend({
+  page: async ({ page }, use, testInfo) => {
+    // Зберігаємо контекст перед використанням page
+    currentTestContext = { testInfo, page };
+    await use(page);
+    // Очищаємо контекст після використання
+    currentTestContext = null;
+  },
+});
 
 // Створюємо обгортку для test.step з автоматичними скріншотами
 const originalTestStep = test.step.bind(test);
@@ -24,19 +25,17 @@ const stepWrapper = async function<T>(title: string, body: (stepInfo: any) => Pr
       // Виконуємо крок
       const result = await body(stepInfo);
       
-      // Отримуємо поточний контекст тесту для доступу до page та робимо скріншот
-      const context = testContextStorage.getStore();
-      if (context?.page && context?.testInfo) {
-        await takeScreenshotAfterStep(context.page, stepInfo, context.testInfo);
+      // Робимо скріншот після кроку
+      if (currentTestContext?.page && currentTestContext?.testInfo) {
+        await takeScreenshotAfterStep(currentTestContext.page, stepInfo, currentTestContext.testInfo);
       }
       
       return result;
     } catch (error) {
       // Якщо крок падає, все одно робимо скріншот
-      const context = testContextStorage.getStore();
-      if (context?.page && context?.testInfo) {
+      if (currentTestContext?.page && currentTestContext?.testInfo) {
         try {
-          await takeScreenshotAfterStep(context.page, { ...stepInfo, error }, context.testInfo);
+          await takeScreenshotAfterStep(currentTestContext.page, { ...stepInfo, error }, currentTestContext.testInfo);
         } catch (screenshotError) {
           console.error('Помилка при створенні скріншота після помилки кроку:', screenshotError);
         }
@@ -53,21 +52,10 @@ if (originalTestStepSkip) {
 
 test.step = stepWrapper as any;
 
-// Глобальний хук після кожного тесту
-// Виконується завжди, навіть якщо тест падає
-test.afterEach(async ({ page }, testInfo) => {
-  // Скріншоти робляться тільки після кожного кроку, а не після тесту
-});
-
-// Глобальний хук перед кожним тестом
-test.beforeEach(async ({ page }, testInfo) => {
-  // Безпечно зберігаємо контекст через AsyncLocalStorage для всього тесту
-  // Це працює навіть при паралельному виконанні тестів
-  testContextStorage.enterWith({ testInfo, page });
-});
-
-// Примітка: Виведення результатів тестів відбувається через кастомний Reporter (custom-reporter.ts)
-// який має доступ до FullResult після завершення всіх тестів
+// Примітка: Контекст тесту (page та testInfo) зберігається автоматично
+// через розширений fixture 'page' (див. вище)
+// Скріншоти створюються автоматично після кожного test.step()
+// Виведення результатів тестів відбувається через кастомний Reporter (custom-reporter.ts)
 
 export { expect } from '@playwright/test';
 

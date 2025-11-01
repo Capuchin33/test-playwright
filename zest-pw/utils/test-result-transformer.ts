@@ -61,11 +61,24 @@ function transformError(error: any): any {
  * Трансформує крок тесту з attachments
  */
 function transformStep(step: any): any {
+  // Збираємо attachments з самого кроку
+  let attachments = step.attachments?.map((att: any) => transformAttachment(att)) || [];
+  
+  // Збираємо attachments з substeps (Playwright створює substeps для testInfo.attach())
+  if (step.steps && Array.isArray(step.steps)) {
+    step.steps.forEach((substep: any) => {
+      if (substep.attachments && substep.attachments.length > 0) {
+        const substepAttachments = substep.attachments.map((att: any) => transformAttachment(att));
+        attachments = attachments.concat(substepAttachments);
+      }
+    });
+  }
+  
   return {
     title: step.title,
     status: determineStepStatus(step),
     duration: step.duration,
-    attachments: step.attachments?.map((att: any) => transformAttachment(att)) || [],
+    attachments: attachments,
     error: transformError(step.error)
   };
 }
