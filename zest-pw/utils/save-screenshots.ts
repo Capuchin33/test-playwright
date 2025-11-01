@@ -10,13 +10,25 @@ function decodeBase64ToBuffer(base64String: string): Buffer {
 
 /**
  * Зберігає скріншот з base64 рядка
+ * @param base64String - Base64 рядок скріншоту
+ * @param filename - Назва файлу
+ * @param outputDir - Базова директорія (за замовчуванням 'screenshots')
+ * @param testTitle - Назва тесту (опціонально, створює підпапку для організації)
  */
 export function saveBase64Screenshot(
   base64String: string,
   filename: string,
-  outputDir: string = 'screenshots'
+  outputDir: string = 'screenshots',
+  testTitle?: string
 ): string {
-  const screenshotsPath = path.join(process.cwd(), outputDir);
+  let screenshotsPath = path.join(process.cwd(), outputDir);
+  
+  // Якщо вказано назву тесту, створюємо окрему підпапку
+  if (testTitle) {
+    const safeTestTitle = testTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    screenshotsPath = path.join(screenshotsPath, safeTestTitle);
+  }
+  
   if (!fs.existsSync(screenshotsPath)) {
     fs.mkdirSync(screenshotsPath, { recursive: true });
   }

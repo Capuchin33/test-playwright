@@ -2,6 +2,8 @@
  * Утиліта для створення скріншотів після кроків тесту
  */
 
+import { Page, TestInfo } from "@playwright/test";
+
 /**
  * Робить скріншот після кожного кроку тесту (завжди, незалежно від результату)
  * 
@@ -9,9 +11,9 @@
  * SAVE_SCREENSHOTS=true npx playwright test
  */
 export async function takeScreenshotAfterStep(
-  page: any,
+  page: Page,
   stepInfo: any,
-  testInfo: any
+  testInfo: TestInfo
 ): Promise<void> {
   try {
     if (page && testInfo) {

@@ -1,14 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+
+// Завантажуємо змінні з .env файлу
+config();
+
 // import * as os from 'os';
 // import * as path from 'path';
-
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -42,7 +39,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Screenshots are handled by custom feature hooks (always taken) */
-    screenshot: 'off',
+    //screenshot: 'off',
   },
 
   /* Configure projects for major browsers */

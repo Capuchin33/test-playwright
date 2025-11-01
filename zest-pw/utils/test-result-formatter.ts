@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { parsePlannedStepsFromFile } from './parse-test-steps';
 import { saveBase64Screenshot } from './save-screenshots';
 
@@ -19,7 +20,12 @@ export function printTestResults(result: any): void {
     const plannedSteps = getPlannedSteps(test);
     const allSteps = combineSteps(userSteps, plannedSteps);
     
-    printTestSteps(userSteps, allSteps);
+    // Створюємо outputDir точно як Playwright: test-results/{filename}-{test-title}-{project}
+    const testFileName = test.location.file.split('/').pop()?.replace('.spec.ts', '') || 'test';
+    const sanitizedTitle = test.title.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const outputDir = path.join('test-results', `${testFileName}-${sanitizedTitle}-chromium`);
+    
+    printTestSteps(userSteps, allSteps, test.title, outputDir);
   });
 
   console.log('\n=== Фінальне завершення ===');
@@ -97,7 +103,7 @@ function combineSteps(executedSteps: any[], plannedSteps: string[]): any[] {
 /**
  * Виводить інформацію про кроки тесту
  */
-function printTestSteps(executedSteps: any[], allSteps: any[]): void {
+function printTestSteps(executedSteps: any[], allSteps: any[], testTitle: string, outputDir?: string): void {
   if (allSteps.length === 0) {
     console.log('  Кроки: немає');
     return;
@@ -110,7 +116,7 @@ function printTestSteps(executedSteps: any[], allSteps: any[]): void {
   allSteps.forEach((step: any, stepIndex: number) => {
     console.log(`    ${stepIndex + 1}. "${step.title}"`);
     
-    printStepAttachments(step);
+    printStepAttachments(step, testTitle, outputDir, stepIndex + 1);
     console.log(`       statusName: ${step.status}`);
     
     if (step.error) {
@@ -122,7 +128,7 @@ function printTestSteps(executedSteps: any[], allSteps: any[]): void {
 /**
  * Виводить attachments кроку
  */
-function printStepAttachments(step: any): void {
+function printStepAttachments(step: any, testTitle: string, outputDir: string | undefined, stepNumber: number): void {
   if (!step.attachments || step.attachments.length === 0) {
     return;
   }
@@ -139,8 +145,19 @@ function printStepAttachments(step: any): void {
       if (process.env.SAVE_SCREENSHOTS === 'true' && att.contentType === 'image/png') {
         try {
           const stepTitle = step.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-          const filename = `${stepTitle}__${index + 1}__${Date.now()}.png`;
-          const filepath = saveBase64Screenshot(att.body, filename);
+          // Формат: step_1_title.png
+          const filename = `step_${stepNumber}_${stepTitle}.png`;
+          
+          // Використовуємо outputDir від Playwright або fallback на screenshots/
+          let filepath: string;
+          if (outputDir) {
+            // Зберігаємо в папку тесту, яку створив Playwright
+            filepath = saveBase64Screenshot(att.body, filename, outputDir);
+          } else {
+            // Fallback: зберігаємо в screenshots/ з підпапкою тесту
+            filepath = saveBase64Screenshot(att.body, filename, 'screenshots', testTitle);
+          }
+          
           console.log(`           📸 Saved to: ${filepath}`);
         } catch (error) {
           console.error(`           ⚠️  Error saving screenshot: ${error}`);
@@ -150,3 +167,31 @@ function printStepAttachments(step: any): void {
   });
 }
 
+/**
+ * Зберігає результати тестів у JSON файл
+ * @param result - Об'єкт з результатами тестів
+ * @param outputDir - Директорія для збереження (за замовчуванням 'test-results')
+ */
+export function saveTestResultsToJson(result: any, outputDir: string = 'test-results'): string {
+  try {
+    // Створюємо директорію, якщо не існує
+    const resultsPath = path.join(process.cwd(), outputDir);
+    if (!fs.existsSync(resultsPath)) {
+      fs.mkdirSync(resultsPath, { recursive: true });
+    }
+
+    // Формуємо назву файлу з timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `test-results__${timestamp}.json`;
+    const filepath = path.join(resultsPath, filename);
+
+    // Зберігаємо JSON з форматуванням
+    fs.writeFileSync(filepath, JSON.stringify(result, null, 2), 'utf-8');
+
+    console.log(`\n📄 JSON звіт збережено: ${filepath}`);
+    return filepath;
+  } catch (error) {
+    console.error(`\n⚠️  Помилка при збереженні JSON звіту: ${error}`);
+    throw error;
+  }
+}

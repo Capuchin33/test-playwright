@@ -1,6 +1,7 @@
 import type { Reporter, FullConfig, FullResult, TestCase, TestResult } from '@playwright/test/reporter';
 import { printTestResults } from '../utils/test-result-formatter';
 import { transformTestResults } from '../utils/test-result-transformer';
+import { saveTestResultsToJson } from '../utils/test-result-formatter';
 
 /**
  * Кастомний репортер для виведення детальних результатів тестів з інформацією про кроки
@@ -20,7 +21,14 @@ class CustomReporter implements Reporter {
     // Трансформуємо результати тестів в розширений формат з інформацією про кроки
     const transformedResults = transformTestResults(fullResult, this.testResults);
 
-    // Виводимо результати тестів
+    // Автоматично зберігаємо JSON звіт
+    try {
+      saveTestResultsToJson(transformedResults);
+    } catch (error) {
+      console.error('Помилка при збереженні JSON звіту:', error);
+    }
+
+    // Виводимо результати тестів в консоль
     try {
       printTestResults(transformedResults);
     } catch (error) {
