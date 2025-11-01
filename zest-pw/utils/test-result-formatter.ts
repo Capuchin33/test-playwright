@@ -5,8 +5,14 @@ import { saveBase64Screenshot } from './save-screenshots';
 
 /**
  * Форматує та виводить результати тестів після їх завершення
+ * Вивід контролюється через змінну оточення PRINT_TEST_RESULTS
  */
 export function printTestResults(result: any): void {
+  // Перевіряємо чи потрібно виводити результати
+  if (process.env.PRINT_TEST_RESULTS !== 'true') {
+    return;
+  }
+
   if (!result.tests || !Array.isArray(result.tests)) {
     return;
   }
@@ -180,9 +186,8 @@ export function saveTestResultsToJson(result: any, outputDir: string = 'test-res
       fs.mkdirSync(resultsPath, { recursive: true });
     }
 
-    // Формуємо назву файлу з timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `test-results__${timestamp}.json`;
+    // Формуємо назву файлу
+    const filename = `test-results.json`;
     const filepath = path.join(resultsPath, filename);
 
     // Зберігаємо JSON з форматуванням

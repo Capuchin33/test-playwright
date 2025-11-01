@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "npx playwright test",
-    "test:screenshots": "SAVE_SCREENSHOTS=true npx playwright test",
-    "test:screenshots:headed": "SAVE_SCREENSHOTS=true npx playwright test --headed",
-    "print:report": "node scripts/print-report.js"
+    "test": "npx playwright test"
   },
   "keywords": [],
   "author": "",

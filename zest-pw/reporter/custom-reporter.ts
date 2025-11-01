@@ -28,7 +28,7 @@ class CustomReporter implements Reporter {
       console.error('Помилка при збереженні JSON звіту:', error);
     }
 
-    // Виводимо результати тестів в консоль
+    // Виводимо результати тестів в консоль (контролюється через PRINT_TEST_RESULTS в .env)
     try {
       printTestResults(transformedResults);
     } catch (error) {

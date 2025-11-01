@@ -7,8 +7,9 @@ import { Page, TestInfo } from "@playwright/test";
 /**
  * Робить скріншот після кожного кроку тесту (завжди, незалежно від результату)
  * 
- * Для збереження скріншотів на диск (з base64 результатів) встановіть змінну оточення:
- * SAVE_SCREENSHOTS=true npx playwright test
+ * Для збереження скріншотів на диск (з base64 результатів):
+ * 1. Додайте в .env файл: SAVE_SCREENSHOTS=true
+ * 2. Або передайте через команду: SAVE_SCREENSHOTS=true npx playwright test
  */
 export async function takeScreenshotAfterStep(
   page: Page,
