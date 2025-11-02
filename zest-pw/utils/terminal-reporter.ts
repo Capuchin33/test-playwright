@@ -70,8 +70,8 @@ function printTestSteps(executedCount: number, allSteps: any[], testTitle: strin
       }
     }
     
-    console.log(`       Status: ${statusEmoji}`);
     printStepAttachments(step, testTitle, outputDir, stepIndex + 1);
+    console.log(`       Status: ${statusEmoji}`);
     
     // Додаємо порожній рядок після кожного кроку для кращої читабельності
     console.log('');
