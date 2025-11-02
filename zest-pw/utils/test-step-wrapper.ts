@@ -20,7 +20,7 @@ export function wrapTestStepWithScreenshots(
     body: (stepInfo: any) => Promise<T> | T,
     options?: { box?: boolean; timeout?: number }
   ): Promise<T> {
-    return originalTestStep(title, async (stepInfo) => {
+    return originalTestStep(title, async (stepInfo: any) => {
       try {
         // Виконуємо крок
         const result = await body(stepInfo);
