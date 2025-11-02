@@ -1,14 +1,11 @@
 import { test, expect } from '../zest-pw/fixtures/fixtures'
 
-// test.beforeEach(async ({ page }) => {
-//   await page.goto('');
-// });
 
 test.only('Check the get started link', async ({ page }) => {
   
   await test.step('Go to the playwright website', async () => {
     await page.goto('');
-    expect(false).toBeTruthy();
+    // expect(false).toBeTruthy();
   });
 
   await test.step('Click the get started link', async () => {

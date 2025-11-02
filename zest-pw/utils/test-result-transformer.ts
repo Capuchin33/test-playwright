@@ -9,7 +9,6 @@ export function transformTestResults(
   testResults: Array<{ test: TestCase; result: TestResult }>
 ): any {
   return {
-    ...fullResult,
     tests: testResults.map(({ test, result }) => transformTestCase(test, result))
   };
 }
@@ -19,28 +18,24 @@ export function transformTestResults(
  */
 function transformTestCase(test: TestCase, result: TestResult): any {
   return {
-    title: test.title,
-    location: transformLocation(test.location),
-    status: result.status,
-    duration: result.duration,
-    error: transformError(result.error),
+    testTitle: test.title,
+    testCaseKey: transformLocation(test.location),
+    _fullPath: test.location?.file,  // Тимчасове поле для enrich-test-results
     steps: result.steps?.map(step => transformStep(step)) || []
   };
 }
 
 /**
- * Трансформує інформацію про локацію тесту
+ * Трансформує інформацію про локацію тесту - повертає назву файлу як testCaseKey
  */
-function transformLocation(location: any): any {
-  if (!location) {
+function transformLocation(location: any): string | undefined {
+  if (!location || !location.file) {
     return undefined;
   }
 
-  return {
-    file: location.file,
-    line: location.line,
-    column: location.column
-  };
+  // Витягуємо тільки назву файлу з повного шляху та видаляємо .spec.ts
+  const fileName = location.file.split('/').pop();
+  return fileName?.replace('.spec.ts', '');
 }
 
 /**
@@ -75,10 +70,9 @@ function transformStep(step: any): any {
   }
   
   return {
-    title: step.title,
-    status: determineStepStatus(step),
-    duration: step.duration,
-    attachments: attachments,
+    stepTitle: step.title,
+    actualResult: attachments,
+    statusName: determineStepStatus(step),
     error: transformError(step.error)
   };
 }
@@ -98,11 +92,9 @@ function determineStepStatus(step: any): string {
  */
 function transformAttachment(att: any): any {
   return {
-    name: att.name,
-    contentType: att.contentType,
-    path: att.path,
-    body: att.body ? att.body.toString('base64') : undefined,
-    bodySize: att.body ? att.body.length : undefined
+    name: att.name, // Тимчасово зберігаємо name, буде замінено на fileName в add-file-names.ts
+    contentType: att.contentType, // Тимчасово, буде замінено на image в add-file-names.ts
+    body: att.body ? att.body.toString('base64') : undefined
   };
 }
 

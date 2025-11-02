@@ -26,7 +26,7 @@ test('Check the get started link', async ({ page }) => {
   });
 
   await test.step('Check the installation heading', async () => {
-    expect(false).toBeTruthy();
+    // expect(false).toBeTruthy();
     await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
   });
 });

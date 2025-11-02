@@ -14,12 +14,13 @@ import type { Page, TestInfo } from "@playwright/test";
 export async function takeScreenshotAfterStep(
   page: Page,
   stepInfo: any,
-  testInfo: TestInfo
+  testInfo: TestInfo,
+  stepTitle?: string
 ): Promise<void> {
   try {
     if (page && testInfo) {
       // Формуємо назву файлу на основі назви кроку
-      const stepTitle = stepInfo?.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'step';
+      const sanitizedTitle = (stepTitle || stepInfo?.title || 'step').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       
       // Робимо скріншот без збереження на диск (тільки в буфер)
       const screenshotBuffer = await page.screenshot({ 
@@ -28,7 +29,7 @@ export async function takeScreenshotAfterStep(
       
       // Додаємо скріншот як attachment через testInfo
       // Attachment автоматично прикріплюється до поточного кроку як substep
-      await testInfo.attach(`step-screenshot-${stepTitle}`, {
+      await testInfo.attach(stepTitle || stepInfo?.title || 'screenshot', {
         body: screenshotBuffer,
         contentType: 'image/png',
       });

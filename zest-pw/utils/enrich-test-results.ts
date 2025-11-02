@@ -24,8 +24,11 @@ function enrichTestWithPlannedSteps(test: any): any {
   const plannedSteps = getPlannedSteps(test);
   const allSteps = combineSteps(userSteps, plannedSteps);
 
+  // Видаляємо _fullPath перед поверненням (використовувався тільки для getPlannedSteps)
+  const { _fullPath, ...testWithoutFullPath } = test;
+
   return {
-    ...test,
+    ...testWithoutFullPath,
     steps: allSteps
   };
 }
@@ -35,7 +38,7 @@ function enrichTestWithPlannedSteps(test: any): any {
  */
 function filterUserSteps(steps: any[]): any[] {
   return steps.filter((step: any) => {
-    const title = step.title || '';
+    const title = step.stepTitle || '';
     const lowerTitle = title.toLowerCase();
     
     return (
@@ -57,30 +60,32 @@ function filterUserSteps(steps: any[]): any[] {
  * Отримує заплановані кроки з файлу тесту
  */
 function getPlannedSteps(test: any): string[] {
-  if (!test.location?.file) {
+  // Використовуємо _fullPath який створюється в transformTestCase
+  const fullPath = test._fullPath;
+  if (!fullPath) {
     return [];
   }
 
-  const testFilePath = path.isAbsolute(test.location.file)
-    ? test.location.file
-    : path.join(process.cwd(), test.location.file);
+  const testFilePath = path.isAbsolute(fullPath)
+    ? fullPath
+    : path.join(process.cwd(), fullPath);
   
-  return parsePlannedStepsFromFile(testFilePath, test.title);
+  return parsePlannedStepsFromFile(testFilePath, test.testTitle);
 }
 
 /**
  * Об'єднує виконані та невиконані кроки
  */
 function combineSteps(executedSteps: any[], plannedSteps: string[]): any[] {
-  const executedStepTitles = executedSteps.map((step: any) => step.title);
+  const executedStepTitles = executedSteps.map((step: any) => step.stepTitle);
   const notExecutedSteps = plannedSteps.slice(executedStepTitles.length);
 
   return [
     ...executedSteps,
     ...notExecutedSteps.map((stepTitle: string) => ({
-      title: stepTitle,
-      status: 'skipped',
-      attachments: []
+      stepTitle: stepTitle,
+      actualResult: [],
+      statusName: 'skipped'
     }))
   ];
 }

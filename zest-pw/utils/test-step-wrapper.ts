@@ -28,7 +28,7 @@ export function wrapTestStepWithScreenshots(
         // Робимо скріншот після успішного виконання кроку
         const context = getCurrentContext();
         if (context?.page && context?.testInfo) {
-          await takeScreenshotAfterStep(context.page, stepInfo, context.testInfo);
+          await takeScreenshotAfterStep(context.page, stepInfo, context.testInfo, title);
         }
         
         return result;
@@ -37,7 +37,7 @@ export function wrapTestStepWithScreenshots(
         const context = getCurrentContext();
         if (context?.page && context?.testInfo) {
           try {
-            await takeScreenshotAfterStep(context.page, { ...stepInfo, error }, context.testInfo);
+            await takeScreenshotAfterStep(context.page, { ...stepInfo, error }, context.testInfo, title);
           } catch (screenshotError) {
             console.error('Помилка при створенні скріншота після помилки кроку:', screenshotError);
           }

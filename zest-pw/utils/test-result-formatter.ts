@@ -19,19 +19,20 @@ export function printTestResults(result: any): void {
 
   console.log('\n=== Деталі по тестах та їх кроках ===');
   
-  result.tests.forEach((test: any, testIndex: number) => {
-    printTestInfo(test, testIndex);
+  result.tests.forEach((test: any) => {
+    printTestInfo(test);
     
     // test.steps вже містить всі кроки (виконані + заплановані) після enrichTestResultsWithPlannedSteps
     const allSteps = test.steps || [];
-    const executedSteps = allSteps.filter((step: any) => step.status !== 'skipped');
+    const executedSteps = allSteps.filter((step: any) => step.statusName !== 'skipped');
     
     // Створюємо outputDir точно як Playwright: test-results/{filename}-{test-title}-{project}
-    const testFileName = test.location.file.split('/').pop()?.replace('.spec.ts', '') || 'test';
-    const sanitizedTitle = test.title.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // test.testCaseKey тепер без розширення (наприклад "TC-002")
+    const testFileName = test.testCaseKey || 'test';
+    const sanitizedTitle = test.testTitle.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
     const outputDir = path.join('test-results', `${testFileName}-${sanitizedTitle}-chromium`);
     
-    printTestSteps(executedSteps.length, allSteps, test.title, outputDir);
+    printTestSteps(executedSteps.length, allSteps, test.testTitle, outputDir);
   });
 
   console.log('\n=== Фінальне завершення ===');
@@ -40,13 +41,8 @@ export function printTestResults(result: any): void {
 /**
  * Виводить загальну інформацію про тест
  */
-function printTestInfo(test: any, testIndex: number): void {
-  console.log(`\nТест ${testIndex + 1}: ${test.title}`);
-  console.log(`  Status: ${test.status || 'unknown'}`);
-  
-  if (test.error) {
-    console.log(`  Помилка тесту: ${test.error.message}`);
-  }
+function printTestInfo(test: any): void {
+  console.log(`\n${test.testCaseKey}: ${test.testTitle}`);
 }
 
 /**
@@ -54,16 +50,16 @@ function printTestInfo(test: any, testIndex: number): void {
  */
 function printTestSteps(executedCount: number, allSteps: any[], testTitle: string, outputDir?: string): void {
   if (allSteps.length === 0) {
-    console.log('  Кроки: немає');
+    console.log('  Steps: none');
     return;
   }
 
   const totalCount = allSteps.length;
-  console.log(`  Кроки (${executedCount}/${totalCount}):`);
+  console.log(`  Steps (${executedCount}/${totalCount}):`);
 
   allSteps.forEach((step: any, stepIndex: number) => {
-    const statusEmoji = step.status === 'passed' ? '✅' : step.status === 'failed' ? '❌' : step.status === 'skipped' ? '⏭️' : '⏱️';
-    console.log(`    ${stepIndex + 1}. "${step.title}" ${statusEmoji}`);
+    const statusEmoji = step.statusName === 'passed' ? '✅' : step.statusName === 'failed' ? '❌' : step.statusName === 'skipped' ? '⏭️' : '⏱️';
+    console.log(`    ${stepIndex + 1}. ${step.stepTitle}`);
     
     // Спочатку показуємо помилку, якщо є
     if (step.error) {
@@ -74,56 +70,52 @@ function printTestSteps(executedCount: number, allSteps: any[], testTitle: strin
       }
     }
     
+    console.log(`       status: ${statusEmoji}`);
     printStepAttachments(step, testTitle, outputDir, stepIndex + 1);
-    console.log(`       statusName: ${step.status}`);
   });
 }
 
 /**
- * Виводить attachments кроку
+ * Виводить actualResult кроку
  */
 function printStepAttachments(step: any, testTitle: string, outputDir: string | undefined, stepNumber: number): void {
-  if (!step.attachments || step.attachments.length === 0) {
+  if (!step.actualResult || step.actualResult.length === 0) {
     return;
   }
 
-  console.log(`       actualResult:`);
-  step.attachments.forEach((att: any, index: number) => {
-    const isErrorScreenshot = att.name.includes('ERROR');
-    const emoji = isErrorScreenshot ? '💥' : att.contentType === 'image/png' ? '📸' : '📄';
-    console.log(`         ${emoji} ${att.name} (${att.contentType})${att.path ? ` - Path: ${att.path}` : ''}`);
+  console.log(`       screenshot:`);
+  step.actualResult.forEach((att: any, index: number) => {
+    const isErrorScreenshot = att.fileName?.includes('ERROR');
+    const emoji = isErrorScreenshot ? '💥' : att.image === 'image/png' ? '📸' : '📄';
     
-    if (att.body) {
-      // Для текстових attachments виводимо повний текст
-      if (att.contentType === 'text/plain') {
-        console.log(`           ${att.body}`);
-      } else {
-        const preview = att.body.substring(0, 50);
-        console.log(`           Base64 (${att.bodySize} bytes): ${preview}...`);
-      }
-      
-      // Зберігаємо скріншот на диск, якщо встановлена змінна оточення
-      if (process.env.SAVE_SCREENSHOTS === 'true' && att.contentType === 'image/png') {
-        try {
-          const stepTitle = step.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-          // Формат: step_1_title.png або step_1_title_ERROR.png
-          const errorSuffix = isErrorScreenshot ? '_ERROR' : '';
-          const filename = `step_${stepNumber}_${stepTitle}${errorSuffix}.png`;
-          
-          // Використовуємо outputDir від Playwright або fallback на screenshots/
-          let filepath: string;
-          if (outputDir) {
-            // Зберігаємо в папку тесту, яку створив Playwright
-            filepath = saveBase64Screenshot(att.body, filename, outputDir);
-          } else {
-            // Fallback: зберігаємо в screenshots/ з підпапкою тесту
-            filepath = saveBase64Screenshot(att.body, filename, 'screenshots', testTitle);
-          }
-          
-          console.log(`           💾 Saved to: ${filepath}`);
-        } catch (error) {
-          console.error(`           ⚠️  Error saving screenshot: ${error}`);
+    // Для консолі виводимо "Decode: Base64"
+    const displayName = att.image === 'image/png' ? 'Decode: Base64' : att.fileName;
+    console.log(`         ${emoji} ${displayName}`);
+    
+    if (att.body && att.image === 'text/plain') {
+      // Для текстових actualResult виводимо повний текст
+      console.log(`         ${att.body}`);
+    }
+    
+    // Зберігаємо скріншот на диск, якщо встановлена змінна оточення
+    if (att.body && process.env.SAVE_SCREENSHOTS === 'true' && att.image === 'image/png') {
+      try {
+        // Використовуємо fileName з actualResult
+        const filename = att.fileName;
+        
+        // Використовуємо outputDir від Playwright або fallback на screenshots/
+        if (outputDir) {
+          // Зберігаємо в папку тесту, яку створив Playwright
+          saveBase64Screenshot(att.body, filename, outputDir);
+        } else {
+          // Fallback: зберігаємо в screenshots/ з підпапкою тесту
+          saveBase64Screenshot(att.body, filename, 'screenshots', testTitle);
         }
+        
+        console.log(`         💾 File saved: locally`);
+        console.log(`         📄 File name: ${filename}`);
+      } catch (error) {
+        console.error(`         ⚠️  Error saving screenshot: ${error}`);
       }
     }
   });

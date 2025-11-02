@@ -3,6 +3,7 @@ import { printTestResults } from '../utils/test-result-formatter';
 import { transformTestResults } from '../utils/test-result-transformer';
 import { saveTestResultsToJson } from '../utils/save-json-report';
 import { enrichTestResultsWithPlannedSteps } from '../utils/enrich-test-results';
+import { addFileNamesToResults } from '../utils/add-file-names';
 
 /**
  * Кастомний репортер для виведення детальних результатів тестів з інформацією про кроки
@@ -25,16 +26,19 @@ class CustomReporter implements Reporter {
     // Збагачуємо результати запланованими кроками (для JSON і консолі)
     const enrichedResults = enrichTestResultsWithPlannedSteps(transformedResults);
 
+    // Додаємо форматовані імена файлів до actualResult
+    const finalResults = addFileNamesToResults(enrichedResults);
+
     // Автоматично зберігаємо JSON звіт (з усіма запланованими кроками)
     try {
-      saveTestResultsToJson(enrichedResults);
+      saveTestResultsToJson(finalResults);
     } catch (error) {
       console.error('Помилка при збереженні JSON звіту:', error);
     }
 
     // Виводимо результати тестів в консоль (контролюється через PRINT_TEST_RESULTS в .env)
     try {
-      printTestResults(enrichedResults);
+      printTestResults(finalResults);
     } catch (error) {
       console.error('Помилка при виведенні результатів тестів:', error);
     }
