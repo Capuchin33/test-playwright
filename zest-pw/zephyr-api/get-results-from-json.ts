@@ -31,14 +31,16 @@ export async function getResultsFromJson() {
         return null;
     }
     
-    // Виключаємо testTitle з кожного тесту та stepTitle з кожного кроку
-    const processedResults = {
-        ...testResults,
-        tests: testResults.tests.map(({ testTitle, ...test }) => ({
-            ...test,
+    // Виключаємо testTitle та testCaseKey з кожного тесту, stepTitle з кожного кроку
+    // та перетворюємо масив тестів в об'єкт з ключами testCaseKey
+    const processedResults = testResults.tests.reduce((acc, test) => {
+        const { testTitle, testCaseKey, ...testData } = test;
+        acc[testCaseKey] = {
+            ...testData,
             steps: test.steps.map(({ stepTitle, ...step }) => step)
-        }))
-    };
+        };
+        return acc;
+    }, {} as Record<string, any>);
     
     return processedResults;
 }

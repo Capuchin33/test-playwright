@@ -8,10 +8,6 @@ import { saveBase64Screenshot } from './save-screenshots';
  * Очікує що result вже збагачений запланованими кроками через enrichTestResultsWithPlannedSteps
  */
 export function printTestResults(result: any): void {
-  // Перевіряємо чи потрібно виводити результати
-  if (process.env.PRINT_TEST_RESULTS !== 'true') {
-    return;
-  }
 
   if (!result.tests || !Array.isArray(result.tests)) {
     return;

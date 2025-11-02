@@ -33,6 +33,7 @@ export async function processTestResults(
 
   // Print test results to console (controlled via PRINT_TEST_RESULTS in .env)
   try {
+    if (process.env.PRINT_TEST_RESULTS !== 'true') return;
     printTestResults(finalResults);
   } catch (error) {
     console.error('Error printing test results:', error);
@@ -40,6 +41,7 @@ export async function processTestResults(
 
   // Update test results in Zephyr
   try {
+    if (process.env.UPDATE_TEST_RESULTS !== 'true') return;
     await updateTestResult();
   } catch (error) {
     console.error('Error updating test results:', error);
