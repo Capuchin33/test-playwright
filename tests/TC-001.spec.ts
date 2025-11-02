@@ -1,9 +1,13 @@
 import { test, expect } from '../zest-pw/fixtures/fixtures'
 
-test('TC-001: Check the title', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
+  await page.goto('https://playwright.dev/');
+});
+
+test('Check the title', async ({ page }) => {
   
   await test.step('Go to the playwright website', async () => {
-    await page.goto('https://playwright.dev/');
+    
   });
 
   await test.step('Check the title', async () => {
@@ -11,10 +15,10 @@ test('TC-001: Check the title', async ({ page }) => {
   });
 });
 
-test('TC-002: Check the get started link', async ({ page }) => {
+test('Check the get started link', async ({ page }) => {
   
   await test.step('Go to the playwright website', async () => {
-    await page.goto('https://playwright.dev/');
+    
   });
 
   await test.step('Click the get started link', async () => {
@@ -22,6 +26,7 @@ test('TC-002: Check the get started link', async ({ page }) => {
   });
 
   await test.step('Check the installation heading', async () => {
+    expect(false).toBeTruthy();
     await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
   });
 });

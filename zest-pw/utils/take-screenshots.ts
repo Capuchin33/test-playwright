@@ -2,7 +2,7 @@
  * Утиліта для створення скріншотів після кроків тесту
  */
 
-import { Page, TestInfo } from "@playwright/test";
+import type { Page, TestInfo } from "@playwright/test";
 
 /**
  * Робить скріншот після кожного кроку тесту (завжди, незалежно від результату)
@@ -33,8 +33,8 @@ export async function takeScreenshotAfterStep(
         contentType: 'image/png',
       });
       
-      // Примітка: Збереження на диск відбувається в test-result-formatter.ts
-      // з base64 результатів тестів, якщо SAVE_SCREENSHOTS=true
+      // Примітка: Збереження на диск відбувається в test-result-formatter.ts (якщо PRINT_TEST_RESULTS=true)
+      // або можна зберегти з JSON звіту вручну
     }
   } catch (error) {
     console.error('Помилка при створенні скріншота кроку:', error);

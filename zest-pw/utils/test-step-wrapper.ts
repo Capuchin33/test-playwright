@@ -1,6 +1,5 @@
-import type { TestInfo, TestType } from '@playwright/test';
-import { takeScreenshotAfterStep } from './screenshot';
-import { Page } from '@playwright/test';
+import type { TestInfo, TestType, Page } from '@playwright/test';
+import { takeScreenshotAfterStep } from './take-screenshots';
 
 /**
  * Застосовує обгортку до test.step для автоматичного створення скріншотів

@@ -1,20 +1,14 @@
 import { test, expect } from '../zest-pw/fixtures/fixtures'
 
-test.only('TC-003: Check the title', async ({ page }) => {
+// test.beforeEach(async ({ page }) => {
+//   await page.goto('');
+// });
+
+test.only('Check the get started link', async ({ page }) => {
   
   await test.step('Go to the playwright website', async () => {
-    await page.goto('https://playwright.dev/');
-  });
-
-  await test.step('Check the title', async () => {
-    await expect(page).toHaveTitle(/Playwright/);
-  });
-});
-
-test('TC-004: Check the get started link', async ({ page }) => {
-  
-  await test.step('Go to the playwright website', async () => {
-    await page.goto('https://playwright.dev/');
+    await page.goto('');
+    expect(false).toBeTruthy();
   });
 
   await test.step('Click the get started link', async () => {
