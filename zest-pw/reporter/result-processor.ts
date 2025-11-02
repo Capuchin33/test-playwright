@@ -26,6 +26,7 @@ export async function processTestResults(
 
   // Automatically save JSON report (with all planned steps)
   try {
+    if (process.env.SAVE_TEST_RESULTS_TO_JSON !== 'true') return;
     saveTestResultsToJson(finalResults);
   } catch (error) {
     console.error('Error saving JSON report:', error);

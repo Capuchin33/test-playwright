@@ -1,8 +1,11 @@
 import type { FullResult, TestCase, TestResult } from '@playwright/test/reporter';
 
 /**
- * Трансформує результати тестів з Playwright Reporter API
- * в розширений формат з детальною інформацією про кроки та attachments
+ * Transforms test results from Playwright Reporter API into extended format with detailed information about steps and attachments
+ * 
+ * @param fullResult - Full test execution result from Playwright containing overall status and statistics
+ * @param testResults - Array of individual test results, each containing test case information and execution result
+ * @returns Object with 'tests' array containing transformed test cases
  */
 export function transformTestResults(
   fullResult: FullResult,
@@ -14,7 +17,11 @@ export function transformTestResults(
 }
 
 /**
- * Трансформує окремий тест-кейс з результатом
+ * Transforms individual test case with its result
+ * 
+ * @param test - Test case information from Playwright
+ * @param result - Test execution result containing steps and status
+ * @returns Transformed test object with title, key, and steps
  */
 function transformTestCase(test: TestCase, result: TestResult): any {
   return {
@@ -26,20 +33,26 @@ function transformTestCase(test: TestCase, result: TestResult): any {
 }
 
 /**
- * Трансформує інформацію про локацію тесту - повертає назву файлу як testCaseKey
+ * Transforms test location information - returns file name as testCaseKey
+ * 
+ * @param location - Location object containing file path information
+ * @returns Test case key (file name without .spec.ts extension) or undefined
  */
 function transformLocation(location: any): string | undefined {
   if (!location || !location.file) {
     return undefined;
   }
 
-  // Витягуємо тільки назву файлу з повного шляху та видаляємо .spec.ts
+  // Extract only the file name from the full path and remove .spec.ts extension
   const fileName = location.file.split('/').pop();
   return fileName?.replace('.spec.ts', '');
 }
 
 /**
- * Трансформує інформацію про помилку
+ * Transforms error information
+ * 
+ * @param error - Error object from test execution
+ * @returns Object with error message and stack trace, or undefined if no error
  */
 function transformError(error: any): any {
   if (!error) {
@@ -53,7 +66,10 @@ function transformError(error: any): any {
 }
 
 /**
- * Трансформує крок тесту з attachments
+ * Transforms test step with attachments
+ * 
+ * @param step - Step object from test execution containing title, status, and attachments
+ * @returns Transformed step object with title, actual results, status, and error (if any)
  */
 function transformStep(step: any): any {
   // Збираємо attachments з самого кроку
@@ -78,7 +94,10 @@ function transformStep(step: any): any {
 }
 
 /**
- * Визначає статус кроку
+ * Determines step status
+ * 
+ * @param step - Step object from test execution
+ * @returns Step status ('failed' if has error, otherwise step.status or 'passed')
  */
 function determineStepStatus(step: any): string {
   if (step.error) {
@@ -88,7 +107,10 @@ function determineStepStatus(step: any): string {
 }
 
 /**
- * Трансформує attachment (скріншот, відео, тощо)
+ * Transforms attachment (screenshot, video, etc.)
+ * 
+ * @param att - Attachment object containing name, content type, and body
+ * @returns Transformed attachment with name, contentType, and base64 encoded body
  */
 function transformAttachment(att: any): any {
   return {
