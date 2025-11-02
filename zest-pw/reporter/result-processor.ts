@@ -5,6 +5,7 @@ import { saveTestResultsToJson } from '../utils/save-json-report';
 import { enrichTestResultsWithPlannedSteps } from '../utils/enrich-test-results';
 import { addFileNamesToResults } from '../utils/add-file-names';
 import { updateTestResult } from '../zephyr-api/update-execution-result';
+import { loadZestConfig } from '../config';
 
 /**
  * Processes test results: transforms, enriches, saves to JSON, prints to console, and updates in Zephyr
@@ -15,6 +16,9 @@ export async function processTestResults(
   fullResult: FullResult,
   testResults: Array<{ test: TestCase; result: TestResult }>
 ) {
+  // Load configuration
+  const config = await loadZestConfig();
+
   // Transform test results into extended format with step information
   const transformedResults = transformTestResults(fullResult, testResults);
 
@@ -24,28 +28,31 @@ export async function processTestResults(
   // Add formatted file names to actualResult
   const finalResults = addFileNamesToResults(enrichedResults);
 
-  // Automatically save JSON report (with all planned steps)
-  try {
-    if (process.env.SAVE_TEST_RESULTS_TO_JSON !== 'true') return;
-    saveTestResultsToJson(finalResults);
-  } catch (error) {
-    console.error('Error saving JSON report:', error);
+  // Save JSON report if enabled
+  if (config.reporter.saveJsonReport) {
+    try {
+      saveTestResultsToJson(finalResults, config.reporter.outputDir);
+    } catch (error) {
+      console.error('Error saving JSON report:', error);
+    }
   }
 
-  // Print test results to console (controlled via PRINT_TEST_RESULTS in .env)
-  try {
-    if (process.env.PRINT_TEST_RESULTS !== 'true') return;
-    printTestResults(finalResults);
-  } catch (error) {
-    console.error('Error printing test results:', error);
+  // Print test results to console if enabled
+  if (config.reporter.printToConsole) {
+    try {
+      printTestResults(finalResults);
+    } catch (error) {
+      console.error('Error printing test results:', error);
+    }
   }
 
-  // Update test results in Zephyr
-  try {
-    if (process.env.UPDATE_TEST_RESULTS !== 'true') return;
-    await updateTestResult();
-  } catch (error) {
-    console.error('Error updating test results:', error);
+  // Update test results in Zephyr if enabled
+  if (config.zephyr.enabled && config.zephyr.updateResults) {
+    try {
+      await updateTestResult();
+    } catch (error) {
+      console.error('Error updating test results:', error);
+    }
   }
 }
 
