@@ -27,7 +27,7 @@ function transformTestCase(test: TestCase, result: TestResult): any {
   return {
     testTitle: test.title,
     testCaseKey: transformLocation(test.location),
-    _fullPath: test.location?.file,  // Тимчасове поле для enrich-test-results
+    _fullPath: test.location?.file,  // Used in enrich-test-results.ts to find planned test steps
     steps: result.steps?.map(step => transformStep(step)) || []
   };
 }
@@ -72,10 +72,10 @@ function transformError(error: any): any {
  * @returns Transformed step object with title, actual results, status, and error (if any)
  */
 function transformStep(step: any): any {
-  // Збираємо attachments з самого кроку
+  // Collect attachments from the step itself
   let attachments = step.attachments?.map((att: any) => transformAttachment(att)) || [];
   
-  // Збираємо attachments з substeps (Playwright створює substeps для testInfo.attach())
+  // Collect attachments from substeps (Playwright creates substeps for testInfo.attach())
   if (step.steps && Array.isArray(step.steps)) {
     step.steps.forEach((substep: any) => {
       if (substep.attachments && substep.attachments.length > 0) {
@@ -110,12 +110,12 @@ function determineStepStatus(step: any): string {
  * Transforms attachment (screenshot, video, etc.)
  * 
  * @param att - Attachment object containing name, content type, and body
- * @returns Transformed attachment with name, contentType, and base64 encoded body
+ * @returns Transformed attachment with fileName, image (content type), and base64 encoded body
  */
 function transformAttachment(att: any): any {
   return {
-    name: att.name, // Тимчасово зберігаємо name, буде замінено на fileName в add-file-names.ts
-    contentType: att.contentType, // Тимчасово, буде замінено на image в add-file-names.ts
+    fileName: att.name,
+    image: att.contentType,
     body: att.body ? att.body.toString('base64') : undefined
   };
 }
