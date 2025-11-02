@@ -1,5 +1,5 @@
 import type { Reporter, FullConfig, FullResult, TestCase, TestResult } from '@playwright/test/reporter';
-import { printTestResults } from '../utils/test-result-formatter';
+import { printTestResults } from '../utils/terminal-reporter';
 import { transformTestResults } from '../utils/test-result-transformer';
 import { saveTestResultsToJson } from '../utils/save-json-report';
 import { enrichTestResultsWithPlannedSteps } from '../utils/enrich-test-results';

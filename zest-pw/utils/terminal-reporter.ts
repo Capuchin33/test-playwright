@@ -24,7 +24,7 @@ export function printTestResults(result: any): void {
     
     // test.steps вже містить всі кроки (виконані + заплановані) після enrichTestResultsWithPlannedSteps
     const allSteps = test.steps || [];
-    const executedSteps = allSteps.filter((step: any) => step.statusName !== 'skipped');
+    const executedSteps = allSteps.filter((step: any) => step.statusName !== 'In Progress');
     
     // Створюємо outputDir точно як Playwright: test-results/{filename}-{test-title}-{project}
     // test.testCaseKey тепер без розширення (наприклад "TC-002")
@@ -58,7 +58,7 @@ function printTestSteps(executedCount: number, allSteps: any[], testTitle: strin
   console.log(`  Steps (${executedCount}/${totalCount}):`);
 
   allSteps.forEach((step: any, stepIndex: number) => {
-    const statusEmoji = step.statusName === 'passed' ? '✅' : step.statusName === 'failed' ? '❌' : step.statusName === 'skipped' ? '⏭️' : '⏱️';
+    const statusEmoji = step.statusName === 'passed' ? 'passed - ✅' : step.statusName === 'failed' ? 'failed - ❌' : step.statusName === 'In Progress' ? 'skipped - ⏭️' : '⏱️';
     console.log(`    ${stepIndex + 1}. ${step.stepTitle}`);
     
     // Спочатку показуємо помилку, якщо є
@@ -70,8 +70,11 @@ function printTestSteps(executedCount: number, allSteps: any[], testTitle: strin
       }
     }
     
-    console.log(`       status: ${statusEmoji}`);
+    console.log(`       Status: ${statusEmoji}`);
     printStepAttachments(step, testTitle, outputDir, stepIndex + 1);
+    
+    // Додаємо порожній рядок після кожного кроку для кращої читабельності
+    console.log('');
   });
 }
 
@@ -83,7 +86,7 @@ function printStepAttachments(step: any, testTitle: string, outputDir: string | 
     return;
   }
 
-  console.log(`       screenshot:`);
+  console.log(`       Screenshot:`);
   step.actualResult.forEach((att: any, index: number) => {
     const isErrorScreenshot = att.fileName?.includes('ERROR');
     const emoji = isErrorScreenshot ? '💥' : att.image === 'image/png' ? '📸' : '📄';

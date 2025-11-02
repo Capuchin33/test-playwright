@@ -34,7 +34,7 @@ export async function takeScreenshotAfterStep(
         contentType: 'image/png',
       });
       
-      // Примітка: Збереження на диск відбувається в test-result-formatter.ts (якщо PRINT_TEST_RESULTS=true)
+      // Примітка: Збереження на диск відбувається в terminal-reporter.ts (якщо PRINT_TEST_RESULTS=true)
       // або можна зберегти з JSON звіту вручну
     }
   } catch (error) {

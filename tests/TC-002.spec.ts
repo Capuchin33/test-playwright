@@ -1,7 +1,7 @@
 import { test, expect } from '../zest-pw/fixtures/fixtures'
 
 
-test.only('Check the get started link', async ({ page }) => {
+test('Check the get started link', async ({ page }) => {
   
   await test.step('Go to the playwright website', async () => {
     await page.goto('');

@@ -85,7 +85,7 @@ function combineSteps(executedSteps: any[], plannedSteps: string[]): any[] {
     ...notExecutedSteps.map((stepTitle: string) => ({
       stepTitle: stepTitle,
       actualResult: [],
-      statusName: 'skipped'
+      statusName: 'In Progress'
     }))
   ];
 }
