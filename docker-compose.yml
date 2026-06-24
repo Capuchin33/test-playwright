@@ -1,8 +1,0 @@
-version: "3.9"
-
-services:
-  tests:
-    build: .
-    container_name: playwright-tests
-    shm_size: "1gb"
-    command: npx playwright test
