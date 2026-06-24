@@ -1,29 +1,27 @@
-name: Build and Push Docker Image
+name: Playwright Tests (GHCR)
 
 on:
   push:
     branches: [ main ]
+  pull_request:
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write
+      packages: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set image name (lowercase)
         run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}:latest" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build Docker image
-        run: docker build -t $IMAGE .
+      - name: Pull prebuilt image
+        run: docker pull $IMAGE
 
-      - name: Push Docker image
-        run: docker push $IMAGE
+      - name: Run Playwright tests in Docker
+        run: docker run --rm --shm-size=1g $IMAGE
