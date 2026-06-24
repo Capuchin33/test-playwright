@@ -1,4 +1,4 @@
-name: Playwright Tests (GHCR)
+name: Playwright Tests (Enterprise Docker CI)
 
 on:
   push:
@@ -11,17 +11,29 @@ jobs:
 
     permissions:
       contents: read
-      packages: read
+      packages: write
 
     steps:
-      - name: Set image name (lowercase)
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}:latest" >> $GITHUB_ENV
+      # 1. Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      # 2. Build unique image name from commit SHA
+      - name: Set image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> $GITHUB_ENV
+
+      # 3. Log in to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Pull prebuilt image
-        run: docker pull $IMAGE
+      # 4. Build Docker image
+      - name: Build Docker image
+        run: docker build -t $IMAGE .
 
-      - name: Run Playwright tests in Docker
-        run: docker run --rm --shm-size=1g $IMAGE
+      # 5. Run Playwright tests inside container
+      - name: Run tests in Docker
+        run: docker run --rm --shm-size=1g -e CI=true $IMAGE
+
+      # 6. Push image only if tests passed
+      - name: Push Docker image
+        run: docker push $IMAGE
