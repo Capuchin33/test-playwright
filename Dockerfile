@@ -7,6 +7,4 @@ RUN npm ci
 
 COPY . .
 
-RUN mkdir -p test-results
-
-CMD ["sleep", "infinity"]
+CMD ["npx", "playwright", "test"]
