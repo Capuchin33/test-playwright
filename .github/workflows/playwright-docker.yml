@@ -16,4 +16,4 @@ jobs:
         run: docker build -t playwright-tests .
 
       - name: Run tests in Docker
-        run: docker run --rm --shm-size=1g playwright-tests
+        run: docker run --rm --shm-size=1g playwright-tests npx playwright test
