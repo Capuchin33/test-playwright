@@ -12,8 +12,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t playwright-tests .
-
       - name: Run tests in Docker
-        run: docker run --rm --shm-size=1g playwright-tests npx playwright test
+        run: docker compose run --rm --build tests
