@@ -18,7 +18,7 @@ test('TC-002: Check the get started link', async ({ page }) => {
   });
 
   await test.step('Click the get started link', async () => {
-    await page.getByRole('link', { name: 'Get started11' }).click();
+    await page.getByRole('link', { name: 'Get started' }).click();
   });
 
   await test.step('Check the installation heading', async () => {
